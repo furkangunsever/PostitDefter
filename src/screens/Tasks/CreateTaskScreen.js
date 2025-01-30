@@ -10,19 +10,33 @@ import {
   Platform,
   Alert,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useTasks} from '../../contexts/TaskContext';
 import {COLORS} from '../../utils/colors';
 import {useCustomAlert} from '../../hooks/useCustomAlert';
 import CustomAlert from '../../components/CustomAlert';
 
-const CreateTaskScreen = ({navigation}) => {
+const CreateTaskScreen = ({route, navigation}) => {
   const {addTask} = useTasks();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [dueDate, setDueDate] = useState(
+    route.params?.selectedDate
+      ? new Date(route.params.selectedDate)
+      : new Date(),
+  );
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [subtasks, setSubtasks] = useState([]);
   const [newSubtask, setNewSubtask] = useState('');
   const {alertConfig, showAlert, hideAlert} = useCustomAlert();
+
+  const handleDateChange = (event, selectedDate) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      setDueDate(selectedDate);
+    }
+  };
 
   const handleAddSubtask = () => {
     if (newSubtask.trim()) {
@@ -40,18 +54,14 @@ const CreateTaskScreen = ({navigation}) => {
 
   const handleSave = () => {
     if (!title.trim()) {
-      showAlert({
-        title: 'Uyarı',
-        message: 'Görev başlığı boş olamaz',
-        type: 'warning',
-        buttons: [{text: 'Tamam', onPress: () => {}}],
-      });
+      Alert.alert('Uyarı', 'Görev başlığı boş olamaz');
       return;
     }
 
     addTask({
       title: title.trim(),
       description: description.trim(),
+      dueDate,
       subtasks,
     });
     navigation.goBack();
@@ -79,6 +89,26 @@ const CreateTaskScreen = ({navigation}) => {
             multiline
             textAlignVertical="top"
           />
+          <View style={styles.dateContainer}>
+            <Text style={styles.dateLabel}>Bitiş Tarihi</Text>
+            <TouchableOpacity
+              style={styles.dateButton}
+              onPress={() => setShowDatePicker(true)}>
+              <Icon name="calendar" size={24} color={COLORS.primary} />
+              <Text style={styles.dateText}>
+                {dueDate ? dueDate.toLocaleDateString('tr-TR') : 'Tarih Seç'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          {showDatePicker && (
+            <DateTimePicker
+              value={dueDate}
+              mode="date"
+              display="default"
+              onChange={handleDateChange}
+              minimumDate={new Date()}
+            />
+          )}
           <View style={styles.subtasksContainer}>
             <Text style={styles.subtasksTitle}>Alt Görevler</Text>
             <View style={styles.addSubtaskContainer}>
@@ -147,6 +177,28 @@ const styles = StyleSheet.create({
     padding: 12,
     minHeight: 100,
     marginBottom: 24,
+  },
+  dateContainer: {
+    marginBottom: 24,
+  },
+  dateLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text.primary,
+    marginBottom: 8,
+  },
+  dateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.secondary,
+    borderRadius: 8,
+    padding: 12,
+  },
+  dateText: {
+    marginLeft: 8,
+    fontSize: 16,
+    color: COLORS.text.primary,
   },
   subtasksContainer: {
     marginBottom: 24,

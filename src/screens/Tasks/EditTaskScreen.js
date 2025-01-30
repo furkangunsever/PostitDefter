@@ -15,12 +15,17 @@ import {useTasks} from '../../contexts/TaskContext';
 import {COLORS} from '../../utils/colors';
 import {useCustomAlert} from '../../hooks/useCustomAlert';
 import CustomAlert from '../../components/CustomAlert';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const EditTaskScreen = ({route, navigation}) => {
   const {task} = route.params;
   const {updateTask} = useTasks();
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description || '');
+  const [dueDate, setDueDate] = useState(
+    task.dueDate ? new Date(task.dueDate) : null,
+  );
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [subtasks, setSubtasks] = useState(task.subtasks || []);
   const [newSubtask, setNewSubtask] = useState('');
   const {alertConfig, showAlert, hideAlert} = useCustomAlert();
@@ -39,20 +44,23 @@ const EditTaskScreen = ({route, navigation}) => {
     setSubtasks(subtasks.filter(subtask => subtask.id !== id));
   };
 
+  const handleDateChange = (event, selectedDate) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      setDueDate(selectedDate);
+    }
+  };
+
   const handleSave = () => {
     if (!title.trim()) {
-      showAlert({
-        title: 'Uyarı',
-        message: 'Görev başlığı boş olamaz',
-        type: 'warning',
-        buttons: [{text: 'Tamam', onPress: () => {}}],
-      });
+      Alert.alert('Uyarı', 'Görev başlığı boş olamaz');
       return;
     }
 
     updateTask(task.id, {
       title: title.trim(),
       description: description.trim(),
+      dueDate: dueDate ? dueDate.toISOString() : null,
       subtasks,
     });
     navigation.goBack();
@@ -148,6 +156,28 @@ const styles = StyleSheet.create({
     padding: 12,
     minHeight: 100,
     marginBottom: 24,
+  },
+  dateContainer: {
+    marginBottom: 24,
+  },
+  dateLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text.primary,
+    marginBottom: 8,
+  },
+  dateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.secondary,
+    borderRadius: 8,
+    padding: 12,
+  },
+  dateText: {
+    marginLeft: 8,
+    fontSize: 16,
+    color: COLORS.text.primary,
   },
   subtasksContainer: {
     marginBottom: 24,

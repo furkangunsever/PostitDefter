@@ -8,6 +8,12 @@ import CustomAlert from './CustomAlert';
 const TaskCard = ({task, onPress, onDelete, onToggleComplete}) => {
   const {alertConfig, showAlert, hideAlert} = useCustomAlert();
 
+  const formatDate = dateString => {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    return date.toLocaleDateString('tr-TR');
+  };
+
   const handleDelete = () => {
     showAlert({
       title: 'Görev Silme',
@@ -71,6 +77,12 @@ const TaskCard = ({task, onPress, onDelete, onToggleComplete}) => {
               </Text>
             </View>
           )}
+          {task.dueDate && (
+            <View style={styles.dateContainer}>
+              <Icon name="calendar" size={16} color={COLORS.text.secondary} />
+              <Text style={styles.dateText}>{formatDate(task.dueDate)}</Text>
+            </View>
+          )}
         </View>
         <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
           <Icon name="delete-outline" size={24} color={COLORS.danger} />
@@ -132,6 +144,16 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     padding: 4,
+  },
+  dateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  dateText: {
+    marginLeft: 4,
+    fontSize: 12,
+    color: COLORS.text.secondary,
   },
 });
 
